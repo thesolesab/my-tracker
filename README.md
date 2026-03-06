@@ -1,73 +1,148 @@
-# React + TypeScript + Vite
+# ☕ My Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> Интерактивное приложение для поиска кофеен на карте с автоматическим построением маршрутов
 
-Currently, two official plugins are available:
+![React](https://img.shields.io/badge/React-19-blue?logo=react) 
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)
+![Vite](https://img.shields.io/badge/Vite-8-purple?logo=vite)
+![Leaflet](https://img.shields.io/badge/Leaflet-1.9-green?logo=leaflet)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🎯 Возможности
 
-## React Compiler
+- 🗺️ **Интерактивная карта** - Просмотр кофеен на карте Leaflet в реальном времени
+- 📍 **Геолокация** - Автоматическое определение вашего текущего местоположения
+- 🔍 **Поиск ближайшей кофейни** - Одна кнопка для поиска ближайшего кафе
+- 🛣️ **Маршрутизация** - Автоматическое построение маршрута до выбранной кофейни
+- 📏 **Информация о маршруте** - Расстояние и время в пути
+- ⚡ **Оптимизированная загрузка** - Кафе загружаются только в видимой области карты с дебаунсингом
+- 💾 **Кэширование данных** - React Query автоматически кэширует результаты запросов
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Быстрый старт
 
-## Expanding the ESLint configuration
+### Требования
+- Node.js 18+
+- npm или yarn
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Установка
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```bash
+# Клонируем репозиторий
+git clone https://github.com/thesolesab/my-tracker.git
+cd my-tracker
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Устанавливаем зависимости
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Разработка
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+# Запускаем dev сервер
+npm run dev
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Приложение будет доступно на http://localhost:5173
 ```
+
+### Сборка
+
+```bash
+# Собираем проект для продакшена
+npm run build
+
+# Просмотр собранного проекта
+npm run preview
+```
+
+## 📁 Архитектура проекта
+
+Проект использует методологию **Feature-Sliced Design** для организации кода:
+
+```
+src/
+├── app/                    # Корневое приложение и провайдеры
+├── entities/              # Доменные сущности
+│   └── coffee-shop/       # Сущность кофейни
+├── features/              # Бизнес-функции
+│   ├── build-route/       # Построение маршрутов
+│   └── find-nearest-coffee/  # Поиск ближайшей кофейни
+├── pages/                 # Страницы приложения
+├── shared/                # Переиспользуемый код
+│   ├── config/           # Конфигурация (Leaflet)
+│   ├── lib/              # Утилиты и хуки
+│   └── ui/               # UI компоненты
+└── widgets/              # Крупные компоненты
+    └── map/              # Виджет карты
+```
+
+## 🛠️ Основные технологии
+
+| Технология | Описание |
+|-----------|---------|
+| **React 19** | Фреймворк для UI |
+| **TypeScript** | Типизация JavaScript |
+| **Vite** | Сборщик проекта |
+| **Leaflet** | Библиотека для интерактивных карт |
+| **React Leaflet** | React компоненты для Leaflet |
+| **React Query** | Управление асинхронными данными и кэшированием |
+| **Overpass API** | API для поиска объектов на карте |
+
+## 🎨 Основные компоненты
+
+### MapWidget
+Главный компонент приложения, который отвечает за:
+- Отрисовку карты
+- Управление геолокацией пользователя
+- Отображение маршрута
+
+### CoffeeShopsLoader
+Компонент для загрузки и отображения кофеен:
+- Получает границы видимой области карты
+- Загружает кафе через Overpass API
+- Показывает кнопку поиска ближайшей кофейни
+- Отрисовывает маркеры на карте
+
+### useCoffeeShopsInView
+Custom Hook для управления котором:
+- Отслеживает движение карты
+- Дебаунсит запросы (500мс)
+- Игнорирует малые изменения границ
+- Кэширует результаты (10 минут)
+
+## 📊 API
+
+### Overpass API
+Приложение использует **Overpass API** для поиска кафеен на карте по координатам границ видимой области:
+
+```
+[out:json];
+node["amenity"="cafe"](south,west,north,east);
+out;
+```
+
+## 🔧 Переменные окружения
+
+На данный момент приложение не требует переменных окружения. Все API запросы идут к публичным сервисам.
+
+## 📈 Оптимизации
+
+- ⚡ **Debounce** на 500мс для событий движения карты
+- 🎯 **Умная проверка границ** - игнорирует малые изменения (< 0.005°)
+- 💾 **Кэширование на 10+ минут** через React Query
+- 🔄 **Reuse Query** - переиспользуемые запросы для одних и тех же границ
+- ✅ **Memo** компоненты для предотвращения лишних перерендеров
+
+## 🤝 Контрибьютинг
+
+Приветствуются pull request-ы! Для больших изменений сначала откройте issue с описанием планов.
+
+## 📄 Лицензия
+
+MIT
+
+## 👨‍💻 Автор
+
+[thesolesab](https://github.com/thesolesab)
+
+---
+
+**Наслаждайтесь поиском идеального кафе!** ☕✨

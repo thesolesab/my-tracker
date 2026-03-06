@@ -6,9 +6,9 @@ import { UserMarker } from "@/shared/ui/UserMarker"
 import type { GeolocationState } from "@/shared/lib/geolocation/useGeolocation"
 import { useMap } from "react-leaflet"
 import { formatDistance, formatDuration } from "@/shared/lib/map/formatRoute"
-import { CoffeeMarker, useCoffeeShopsInView, type CoffeeShop } from "@/entities/coffee-shop"
+import type { CoffeeShop } from "@/entities/coffee-shop"
 import { RouteInfo, RouteLine, useRoute } from "@/features/build-route"
-// import { FindNearestButton, findNearestCoffee } from "@/features/find-nearest-coffee"
+import { CoffeeShopsLoader } from "./CoffeeShopsLoader"
 
 const RecenterMap = ({ lat, lng }: { lat: number; lng: number }) => {
     const map = useMap()
@@ -24,30 +24,13 @@ export const MapWidget: FC = () => {
     const { position }: GeolocationState = useGeolocation()
     const [selectedCoffee, setSelectedCoffee] = useState<CoffeeShop | null>(null)
 
-    const { coffeeShops } = useCoffeeShopsInView()
-
-
-    // const handleFindNearest = () => {
-    //     if (!position || !coffeeShops.length) return
-
-    //     const nearestShop = findNearestCoffee(
-    //         position.lat,
-    //         position.lng,
-    //         coffeeShops
-    //     )
-
-    //     setSelectedCoffee(nearestShop)
-    // }
-
     const { data: route } = useRoute(
         position ? [position.lat, position.lng] : null,
         selectedCoffee ? [selectedCoffee.lat, selectedCoffee.lng] : null
     )
 
-
     return (
         <>
-            {/* <FindNearestButton onClick={handleFindNearest} /> */}
             <MapContainer
                 center={[56.3, 37.61]}
                 zoom={13}
@@ -58,13 +41,10 @@ export const MapWidget: FC = () => {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
-                {coffeeShops.map((shop) => (
-                    <CoffeeMarker
-                        key={shop.id}
-                        shop={shop}
-                        onClick={() => setSelectedCoffee(shop)}
-                    />
-                ))}
+                <CoffeeShopsLoader 
+                    onCoffeeSelect={setSelectedCoffee}
+                    userPosition={position}
+                />
 
                 {position && (
                     <>

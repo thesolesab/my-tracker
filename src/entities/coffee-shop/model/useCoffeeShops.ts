@@ -1,38 +1,80 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useMap } from 'react-leaflet'
 import { fetchCoffeeShopsByBounds } from '@/entities/coffee-shop/api/fetchCoffeeShops'
-import type { CoffeeShop } from '@/entities/coffee-shop/model/types'
+
+const DEBOUNCE_DELAY = 500 // мс, задержка перед загрузкой при движении
+const MIN_LATITUDE_CHANGE = 0.005 // мин. изменение границ для перезагрузки
+
+interface Bounds {
+    northEast: { lat: number; lng: number }
+    southWest: { lat: number; lng: number }
+}
 
 export const useCoffeeShopsInView = () => {
     const map = useMap()
-    const [bounds, setBounds] = useState<{ northEast: { lat: number, lng: number }, southWest: { lat: number, lng: number } } | null>(null)
+    const [bounds, setBounds] = useState<Bounds | null>(null)
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+    const previousBoundsRef = useRef<Bounds | null>(null)
 
     useEffect(() => {
         if (!map) return
 
         const updateBounds = () => {
             const b = map.getBounds()
-            setBounds({ northEast: b.getNorthEast(), southWest: b.getSouthWest() })
+            const newBounds = {
+                northEast: b.getNorthEast(),
+                southWest: b.getSouthWest(),
+            }
+
+            // Проверяем, значительно ли изменились границы
+            if (
+                previousBoundsRef.current &&
+                Math.abs(newBounds.northEast.lat - previousBoundsRef.current.northEast.lat) < MIN_LATITUDE_CHANGE &&
+                Math.abs(newBounds.southWest.lat - previousBoundsRef.current.southWest.lat) < MIN_LATITUDE_CHANGE
+            ) {
+                return // Игнорируем малые изменения
+            }
+
+            previousBoundsRef.current = newBounds
+            setBounds(newBounds)
         }
 
-        map.on('moveend', updateBounds)
-        updateBounds() // подгружаем сразу при рендере
+        // Сразу загружаем при первом рендере
+        updateBounds()
+
+        // На событие moveend добавляем debounce
+        const handleMoveEnd = () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current)
+            }
+            debounceTimerRef.current = setTimeout(updateBounds, DEBOUNCE_DELAY)
+        }
+
+        map.on('moveend', handleMoveEnd)
 
         return () => {
-            map.off('moveend', updateBounds)
+            map.off('moveend', handleMoveEnd)
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current)
+            }
         }
     }, [map])
 
-    const { data: coffeeShops, isLoading, error } = useQuery(
-        ['coffeeShops', bounds],
-        () => {
-            if (bounds !== null) {
-                fetchCoffeeShopsByBounds(bounds.northEast, bounds.southWest)
-            }
+    const boundsKey = bounds
+        ? `${bounds.northEast.lat.toFixed(4)}-${bounds.northEast.lng.toFixed(4)}-${bounds.southWest.lat.toFixed(4)}-${bounds.southWest.lng.toFixed(4)}`
+        : null
+
+    const { data: coffeeShops, isLoading, error } = useQuery({
+        queryKey: ['coffeeShops', boundsKey],
+        queryFn: async () => {
+            if (!bounds) return []
+            return await fetchCoffeeShopsByBounds(bounds.northEast, bounds.southWest)
         },
-        { enabled: !!bounds, keepPreviousData: true }
-    )
+        enabled: !!bounds,
+        staleTime: 1000 * 60 * 10, // 10 минут
+        gcTime: 1000 * 60 * 15, // 15 минут (кэширование неиспользуемых запросов)
+    })
 
     return { coffeeShops: coffeeShops || [], isLoading, error }
 }
