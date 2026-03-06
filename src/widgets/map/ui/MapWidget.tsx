@@ -1,16 +1,14 @@
 import { useEffect, useState, type FC } from "react"
 import { MapContainer } from 'react-leaflet/MapContainer'
 import { TileLayer } from 'react-leaflet/TileLayer'
-import { CoffeeMarker } from "@/entities/coffee-shop/ui/CoffeeMarker"
-import type { CoffeeShop } from "@/entities/coffee-shop/model/types"
 import { useGeolocation } from "@/shared/lib/geolocation/useGeolocation"
 import { UserMarker } from "@/shared/ui/UserMarker"
 import type { GeolocationState } from "@/shared/lib/geolocation/useGeolocation"
 import { useMap } from "react-leaflet"
-import { fetchCoffeeShops } from "@/entities/coffee-shop/api/fetchCoffeeShops"
-import { useQuery } from '@tanstack/react-query'
-import { findNearestCoffee } from '@/features/find-nearest-coffee/model/findNearestCoffee'
-import { FindNearestButton } from '@/features/find-nearest-coffee/ui/FindNearestButton'
+import { formatDistance, formatDuration } from "@/shared/lib/map/formatRoute"
+import { CoffeeMarker, useCoffeeShopsInView, type CoffeeShop } from "@/entities/coffee-shop"
+import { RouteInfo, RouteLine, useRoute } from "@/features/build-route"
+// import { FindNearestButton, findNearestCoffee } from "@/features/find-nearest-coffee"
 
 const RecenterMap = ({ lat, lng }: { lat: number; lng: number }) => {
     const map = useMap()
@@ -23,35 +21,35 @@ const RecenterMap = ({ lat, lng }: { lat: number; lng: number }) => {
 }
 
 export const MapWidget: FC = () => {
-    const { coordinates }: GeolocationState = useGeolocation()
-    const [nearest, setNearest] = useState<CoffeeShop | null>(null)
+    const { position }: GeolocationState = useGeolocation()
+    const [selectedCoffee, setSelectedCoffee] = useState<CoffeeShop | null>(null)
 
-    const { data: coffeeShops = [] } = useQuery({
-        queryKey: ['coffee-shops', coordinates],
-        queryFn: () =>
-            coordinates
-                ? fetchCoffeeShops(coordinates.lat, coordinates.lng)
-                : Promise.resolve([]),
-        enabled: !!coordinates,
-    })
+    const { coffeeShops } = useCoffeeShopsInView()
 
-    const handleFindNearest = () => {
-        if (!coordinates || !coffeeShops.length) return
 
-        const nearestShop = findNearestCoffee(
-            coordinates.lat,
-            coordinates.lng,
-            coffeeShops
-        )
+    // const handleFindNearest = () => {
+    //     if (!position || !coffeeShops.length) return
 
-        setNearest(nearestShop)
-    }
+    //     const nearestShop = findNearestCoffee(
+    //         position.lat,
+    //         position.lng,
+    //         coffeeShops
+    //     )
+
+    //     setSelectedCoffee(nearestShop)
+    // }
+
+    const { data: route } = useRoute(
+        position ? [position.lat, position.lng] : null,
+        selectedCoffee ? [selectedCoffee.lat, selectedCoffee.lng] : null
+    )
+
 
     return (
         <>
-            <FindNearestButton onClick={handleFindNearest} />
+            {/* <FindNearestButton onClick={handleFindNearest} /> */}
             <MapContainer
-                center={[55, 37.61]}
+                center={[56.3, 37.61]}
                 zoom={13}
                 style={{ height: '100vh', width: '100%' }}
             >
@@ -64,16 +62,28 @@ export const MapWidget: FC = () => {
                     <CoffeeMarker
                         key={shop.id}
                         shop={shop}
-                        isHighlighted={nearest?.id === shop.id}
+                        onClick={() => setSelectedCoffee(shop)}
                     />
                 ))}
 
-                {coordinates && (
+                {position && (
                     <>
-                        <UserMarker lat={coordinates.lat} lng={coordinates.lng} />
-                        <RecenterMap lat={coordinates.lat} lng={coordinates.lng} />
+                        <UserMarker lat={position.lat} lng={position.lng} />
+                        <RecenterMap lat={position.lat} lng={position.lng} />
                     </>
                 )}
+
+                {
+                    route && <>
+                        <RouteLine route={route.coordinates} />
+                        <RouteInfo
+                            distance={route.distance}
+                            duration={route.duration}
+                            formatDistance={formatDistance}
+                            formatDuration={formatDuration}
+                        />
+                    </>
+                }
             </MapContainer>
         </>
     )

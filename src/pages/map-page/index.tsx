@@ -1,4 +1,4 @@
-import { MapWidget } from '@/widgets/map/ui/MapWidget'
+import { MapWidget } from "@/widgets/map"
 
 export const MapPage = () => {
     return <MapWidget />

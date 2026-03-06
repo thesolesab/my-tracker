@@ -1,52 +1,26 @@
 import type { CoffeeShop } from '../model/types'
 
-interface OverpassElement {
-    id: number
+interface LatLng {
     lat: number
-    lon: number
-    tags?: {
-        name?: string
-    }
-}
-
-interface OverpassResponse {
-    elements: OverpassElement[]
-}
-
-export const fetchCoffeeShops = async (
-    lat: number,
     lng: number
+}
+
+export const fetchCoffeeShopsByBounds = async (
+    northEast: LatLng,
+    southWest: LatLng
 ): Promise<CoffeeShop[]> => {
-    const radius = 1000 // 1 км
+    // Пример API запроса к вашему серверу или внешнему сервису
+    const url = new URL('/api/coffee-shops', window.location.origin)
+    url.searchParams.append('neLat', northEast.lat.toString())
+    url.searchParams.append('neLng', northEast.lng.toString())
+    url.searchParams.append('swLat', southWest.lat.toString())
+    url.searchParams.append('swLng', southWest.lng.toString())
 
-    const query = `
-    [out:json];
-    node
-      ["amenity"="cafe"]
-      (around:${radius},${lat},${lng});
-    out;
-  `
-
-    const response = await fetch(
-        'https://overpass-api.de/api/interpreter',
-        {
-            method: 'POST',
-            body: query,
-        }
-    )
-
-    if (!response.ok) {
+    const res = await fetch(url.toString())
+    if (!res.ok) {
         throw new Error('Failed to fetch coffee shops')
     }
 
-    const data: OverpassResponse = await response.json()
-
-    return data.elements
-        .filter((el) => el.tags?.name)
-        .map((el) => ({
-            id: el.id.toString(),
-            name: el.tags?.name || 'Unnamed cafe',
-            lat: el.lat,
-            lng: el.lon,
-        }))
+    const data: CoffeeShop[] = await res.json()
+    return data
 }

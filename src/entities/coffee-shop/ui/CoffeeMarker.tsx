@@ -14,16 +14,20 @@ const defaultIcon = new L.Icon.Default()
 interface Props {
     shop: CoffeeShop
     isHighlighted?: boolean
+    onClick?: () => void
 }
 
-export const CoffeeMarker = ({ shop, isHighlighted }: Props) => {
+export const CoffeeMarker = ({ shop, isHighlighted, onClick }: Props) => {
     return (
         <Marker
             position={[shop.lat, shop.lng]}
             icon={isHighlighted ? greenIcon : defaultIcon}
+            eventHandlers={{ click: onClick }}
         >
             <Popup>
                 <strong>{shop.name}</strong>
+                <br />
+                <button onClick={onClick}>Построить маршрут</button>
             </Popup>
         </Marker>
     )

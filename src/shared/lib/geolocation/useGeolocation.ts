@@ -6,37 +6,44 @@ export interface Coordinates {
 }
 
 export interface GeolocationState {
-    coordinates: Coordinates | null
+    position: Coordinates | null
     error: string | null
     loading: boolean
 }
 
 export const useGeolocation = (): GeolocationState => {
-    const [coordinates, setCoordinates] = useState<Coordinates | null>(null)
-    const [error, setError] = useState<string | null>(null)
-    const [loading, setLoading] = useState(true)
+    const isGeolocationSupported = typeof navigator !== 'undefined' && !!navigator.geolocation
+
+    const [error, setError] = useState<null | string>(isGeolocationSupported ? null : `Geolocation isn't supported`)
+    const [loading, setLoading] = useState<boolean>(isGeolocationSupported ? true : false)
+    const [position, setPosition] = useState<Coordinates | null>(null)
 
     useEffect(() => {
-        if (!navigator.geolocation) {
-            setError('Geolocation is not supported')
-            setLoading(false)
+        if (!isGeolocationSupported) {
             return
         }
 
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                setCoordinates({
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                })
-                setLoading(false)
-            },
-            () => {
-                setError('Permission denied or unavailable')
-                setLoading(false)
-            }
-        )
-    }, [])
+        const handleSuccess = (pos: GeolocationPosition) => {
+            setPosition({
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude
+            })
 
-    return { coordinates, error, loading }
+            setLoading(false)
+        }
+        const handleError = (err: GeolocationPositionError) => {
+            setError(err.message)
+            setLoading(false)
+        }
+
+        const watchId: number = navigator.geolocation.watchPosition(handleSuccess, handleError)
+
+        return () => {
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId)
+            }
+        }
+    }, [isGeolocationSupported])
+
+    return { position, error, loading }
 }
