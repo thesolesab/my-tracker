@@ -7,4 +7,24 @@
     border-radius: 8px;
     border: none;
     cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.buttonMap:hover:not(:disabled) {
+    background: #333;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    transform: translateY(-2px);
+}
+
+.buttonMap:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.buttonMap:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }

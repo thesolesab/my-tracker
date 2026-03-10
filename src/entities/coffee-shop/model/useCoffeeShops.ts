@@ -14,6 +14,7 @@ interface Bounds {
 export const useCoffeeShopsInView = () => {
     const map = useMap()
     const [bounds, setBounds] = useState<Bounds | null>(null)
+    const [boundsChanged, setBoundsChanged] = useState(false)
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
     const previousBoundsRef = useRef<Bounds | null>(null)
 
@@ -38,6 +39,7 @@ export const useCoffeeShopsInView = () => {
 
             previousBoundsRef.current = newBounds
             setBounds(newBounds)
+            setBoundsChanged(true) // Отмечаем, что границы значительно изменились
         }
 
         // Сразу загружаем при первом рендере
@@ -76,5 +78,5 @@ export const useCoffeeShopsInView = () => {
         gcTime: 1000 * 60 * 15, // 15 минут (кэширование неиспользуемых запросов)
     })
 
-    return { coffeeShops: coffeeShops || [], isLoading, error }
+    return { coffeeShops: coffeeShops || [], isLoading, error, boundsChanged, setBoundsChanged }
 }
