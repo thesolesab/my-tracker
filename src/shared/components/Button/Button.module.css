@@ -1,0 +1,10 @@
+.buttonMap {
+    position: absolute;
+    z-index: 1000;
+    padding: 10px 15px;
+    background: #111;
+    color: #fff;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}

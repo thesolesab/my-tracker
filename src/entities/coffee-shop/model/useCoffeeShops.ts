@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useMap } from 'react-leaflet'
 import { fetchCoffeeShopsByBounds } from '@/entities/coffee-shop/api/fetchCoffeeShops'
 
-const DEBOUNCE_DELAY = 500 // мс, задержка перед загрузкой при движении
+const DEBOUNCE_DELAY = 1500 // мс, задержка перед загрузкой при движении
 const MIN_LATITUDE_CHANGE = 0.005 // мин. изменение границ для перезагрузки
 
 interface Bounds {
